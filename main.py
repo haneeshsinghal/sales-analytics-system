@@ -330,7 +330,32 @@ def main():
     logger.info(f"✓ Fetched {len(all_products)} products from API and created product mapping\n")
     print(f"✓ Fetched {len(all_products)} products\n")
 
+    # Task 3.2: Enrich Sales Data
+    logger.info("[7/10] Enriching sales data...\n")
+    print("[7/10] Enriching sales data...\n")
+
+    enriched_sales_data, non_enriched_sales_data, total_enriched_count, total_non_enriched_count = api_handler.enrich_sales_data(parsed_sales_data, product_mapping, str(enriched_sales_data_path))
+    percentage = (total_enriched_count / (total_enriched_count + total_non_enriched_count)) * 100 if (total_enriched_count + total_non_enriched_count) > 0 else 0
+
+    for txn in enriched_sales_data:
+        print(txn)
+        logger.info(txn)
+
+    for txn in non_enriched_sales_data:
+        print(txn)
+        logger.info(txn)
+
+    logger.info("\n")
+    logger.info(f"✓ Enriched {total_enriched_count} / {total_enriched_count + total_non_enriched_count} transactions {percentage:.2f}%\n")
+    print(f"\n✓ Enriched {total_enriched_count} / {total_enriched_count + total_non_enriched_count} transactions {percentage:.2f}%\n")
     
+    logger.info("[8/10] Saving enriched data...\n")
+    print("[8/10] Saving enriched data...\n")
+
+    short_path = os.path.join(os.path.basename(os.path.dirname(enriched_sales_data_path)), os.path.basename(enriched_sales_data_path))
+
+    logger.info("✓ Saved to: %s\n", short_path)
+    print(f"✓ Saved to: {short_path}\n")
 
 
 # Run main function

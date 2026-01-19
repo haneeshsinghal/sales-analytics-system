@@ -70,4 +70,87 @@ class ApiHandler:
             } for product in products if 'id' in product
         }
         return product_mapping
+    
+    # ---------------------------------
+    # Task 3.2: Enrich Sales Data
+    # ---------------------------------
+
+    def enrich_sales_data(self, sales_data, product_mapping, enriched_data_path):
+        # Enrich sales data with product information from API
+        enriched_data = []
+        non_enriched_data = []
+        enriched_product_id = {}
+        non_enriched_product_id = {}
+
+        enriched_data_filepath = enriched_data_path
+        
+        # Enrich each sales record
+        for record in sales_data:
+            try:                
+                product_id_str = ''.join(filter(str.isdigit, str(record.get('ProductID', ''))))
+                numeric_product_id = int(product_id_str) if product_id_str else None
+                api_product_id = product_mapping.get(numeric_product_id, {})
+                
+                # Add enriched fields to the record from API data if available
+                if api_product_id:
+                    record['API_Category'] = api_product_id.get('category', None)
+                    record['API_Brand'] = api_product_id.get('brand', None)
+                    record['API_Rating'] = api_product_id.get('rating', None)
+                    record['API_Match'] = 'True'
+                    enriched_product_id[numeric_product_id] = record.get('ProductID')
+                    enriched_data.append(record)
+                # Handle case where product ID is not found in API data
+                else:
+                    record['API_Category'] = None
+                    record['API_Brand'] = None
+                    record['API_Rating'] = None
+                    record['API_Match'] = 'False'
+                    non_enriched_product_id[numeric_product_id] = record.get('ProductID')
+                    non_enriched_data.append(record)
+            
+            except Exception as e:
+                self.logger.error(f"Error enriching transaction {record.get('TransactionID', 'Unknown')}: {e}")
+                record['API_Category'] = None
+                record['API_Brand'] = None
+                record['API_Rating'] = None
+                record['API_Match'] = 'False'
+                non_enriched_data.append(record)
+
+        self.save_enriched_data(enriched_data, enriched_data_filepath)
+        total_enriched = len(enriched_data)
+        total_non_enriched = len(non_enriched_data)
+        
+        self.logger.info(f"Total Enriched Product Id: {enriched_product_id}\n")
+        self.logger.info(f"Total Non-Enriched Product Id: {non_enriched_product_id}\n")
+        return enriched_data, non_enriched_data, total_enriched, total_non_enriched  
+
+
+    # Save Enriched Data helper function
+
+    def save_enriched_data(self, enriched_data: list, enriched_data_filename_path: str):
+        
+        # Save enriched data to a file
+        if not enriched_data_filename_path:
+            self.logger.warning("No filename provided to read sales data.")
+            return [], None
+
+        # Define header for the enriched data file
+        header = [
+        'TransactionID', 'Date', 'ProductID', 'ProductName', 'Quantity', 'Price',
+        'CustomerID', 'Region', 'API_Category', 'API_Brand', 'API_Rating', 'API_Match'
+        ]        
+        
+        try:    
+            # Write enriched data to file
+            with open(enriched_data_filename_path, 'w', encoding='utf-8') as f:
+                f.write('|'.join(header) + '\n')
+                for txn in enriched_data:
+                    row = [ str(txn.get(col, '')) for col in header ]
+                    f.write('|'.join(row) + '\n')
+
+            self.logger.info(f"Enriched data saved to {enriched_data_filename_path}.\n")
+        except Exception as e:
+            self.logger.error(f"Error saving enriched data to {enriched_data_filename_path}: {e}")
+                
+# End of API Handler Class
 

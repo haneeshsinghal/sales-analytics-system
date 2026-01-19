@@ -215,7 +215,7 @@ def generate_sales_report(sales_data, enriched_data, non_enriched_data, report_f
         report_file.write(f"Total Products Enriched: {enriched_sales_count}\n")
         report_file.write(f"Success Rate: {success_rate:.2f}%\n")
         report_file.write(f"Products Not Enriched: {', '.join(not_enriched) if not_enriched else 'None'}\n")
-        report_file.write("-"*60 + "\n")
+        report_file.write("-"*60)
 
 # ------------------
 # Main function
@@ -293,7 +293,7 @@ def main():
     logger.info("First 5 parsed transactions: %s", parsed_sales_data[:5])
     logger.info(f"✓ Parsed {len(read_sales_data)} records\n")
     print(f"\n✓ Parsed {len(read_sales_data)} records\n")
-
+    
     # Data Validation and Filtering
     logger.info(f"-"*75)
     logger.info("[3/10] Filter Options Available:")
@@ -387,7 +387,7 @@ def main():
     total_revenue = data_processor.calculate_total_revenue(parsed_sales_data)
 
     logger.info("Total Revenue: ₹%s\n", total_revenue)
-    print(f"\nTotal Revenue: ₹{total_revenue}")    
+    print(f"\nTotal Revenue: ₹{total_revenue}")
     
     # 2. Region-wise Sales Analysis
 
@@ -401,7 +401,7 @@ def main():
 
     for region, stats in region_sales.items():
         logger.info("Region: %s: Total Sales = ₹%s, Transactions = %s, Percentage = %s %%", region, stats['total_sales'], stats['transaction_count'], stats['percentage']) 
-    logger.info("\n") 
+    logger.info("\n")
 
     # 3. Top Selling Products
     logger.info("Top Selling Products: \n")
@@ -429,7 +429,7 @@ def main():
     logger.info(f"-"*75)
     logger.info(" Task 2.2 : Date-based Analysis...")
     logger.info(f"-"*75)
-
+    
     # 1. Daily Sales Trend
     logger.info("Daily Sales Trend:\n")
     print("Daily Sales Trend:\n")
@@ -437,7 +437,7 @@ def main():
     daily_sales_trend = data_processor.daily_sales_trend(parsed_sales_data)
     
     logger.info("Daily Sales Trend: %s\n", daily_sales_trend)
-    print(f"Daily Sales Trend: {daily_sales_trend}\n")    
+    print(f"Daily Sales Trend: {daily_sales_trend}\n")
     
     # 2. Peak Sales Day
     logger.info("Peak Sales Day:\n")
@@ -497,7 +497,7 @@ def main():
 
     logger.info(f"✓ Fetched {len(all_products)} products from API and created product mapping\n")
     print(f"✓ Fetched {len(all_products)} products\n")
-
+    
     # Task 3.2: Enrich Sales Data
     logger.info("[7/10] Enriching sales data...\n")
     print("[7/10] Enriching sales data...\n")

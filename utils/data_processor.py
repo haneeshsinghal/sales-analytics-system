@@ -47,4 +47,61 @@ class DataProcessor:
 
         return sorted_region_sales
     
+    # c} Identifies top N selling products based on quantity sold
+    def top_selling_products(self, sales_data, n=5):
+        product_sales = {}
+
+        for record in sales_data:
+            product = record['ProductName']
+            try:
+                quantity = int(record['Quantity'])
+                revenue = quantity * float(record['Price'])
+            except (ValueError, TypeError):
+                self.logger.error(f"Invalid amount value in record: {record}")
+                quantity = 0
+                revenue = 0.0
+
+            if product not in product_sales:
+                product_sales[product] = {'total_quantity': 0, 'total_revenue': 0.0}
+            
+            product_sales[product]['total_quantity'] += quantity
+            product_sales[product]['total_revenue'] += revenue
+
+        # Sort products by quantity sold
+        sorted_products = sorted(product_sales.items(), key=lambda item: item[1]['total_quantity'], reverse=True)
+        
+        top_n_products = [(product, stats['total_quantity'], round(stats['total_revenue'], 2)) for product, stats in sorted_products[:n]]
+        
+        return top_n_products
     
+    # d} Analyzes customer purchase behavior
+    def customer_analysis(self, sales_data):
+        customer_stats = {}
+
+        for record in sales_data:
+            customer_id = record['CustomerID']
+            product_name = record['ProductName']
+            try:
+                revenue = int(record['Quantity']) * float(record['Price'])
+            except (ValueError, TypeError):
+                self.logger.error(f"Invalid amount value in record: {record}")
+                revenue = 0.0
+
+            if customer_id not in customer_stats:
+                customer_stats[customer_id] = {'total_spent': 0.0, 'purchase_count': 0, 'products': set()}
+            
+            customer_stats[customer_id]['total_spent'] += revenue
+            customer_stats[customer_id]['purchase_count'] += 1
+            customer_stats[customer_id]['products'].add(product_name)
+
+        # Calculate average order value
+        for customer_id in customer_stats:
+            stats = customer_stats[customer_id]
+            stats['avg_order_value'] = round(stats['total_spent'] / stats['purchase_count'], 2) if stats['purchase_count'] > 0 else 0.0
+            stats['products_bought'] = sorted(list(stats['products']))
+            del stats['products']
+
+        # Sorted by total spent descending
+        sorted_customer_stats = dict(sorted(customer_stats.items(), key=lambda item: item[1]['total_spent'], reverse=True))
+                
+        return sorted_customer_stats

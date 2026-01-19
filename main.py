@@ -236,8 +236,33 @@ def main():
         logger.info("Region: %s: Total Sales = ₹%s, Transactions = %s, Percentage = %s %%", region, stats['total_sales'], stats['transaction_count'], stats['percentage']) 
     logger.info("\n") 
 
-
+    # 3. Top Selling Products
+    logger.info("Top Selling Products: \n")
+    print("\nTop Selling Products:\n")
     
+    top_products = data_processor.top_selling_products(parsed_sales_data, n=5)    
+
+    logger.info(f"Top {len(top_products)} Selling Products Identified: {top_products}\n")
+    print(f"Top {len(top_products)} Selling Products Identified: {top_products}\n")
+
+    for product, qty, revenue in top_products:
+        logger.info(f"{product}: Quantity Sold = {qty}, Revenue = ₹{revenue}")
+    logger.info("\n")
+
+    # 4. Customer Purchase Analysis
+
+    logger.info("Customer Purchase Analysis: \n")
+    print("Customer Purchase Analysis:\n")
+
+    customer_stats = data_processor.customer_analysis(parsed_sales_data)
+    
+    logger.info("Customer Purchase Analysis: %s\n", customer_stats)
+    print(f"Customer Purchase Analysis: {customer_stats}\n")    
+
+    logger.info(f"-"*75)
+    logger.info(" Task 2.2 : Date-based Analysis...")
+    logger.info(f"-"*75)
+
 
 # Run main function
 if __name__ == "__main__":

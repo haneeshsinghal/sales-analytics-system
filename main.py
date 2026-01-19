@@ -48,6 +48,174 @@ def setup_logging(log_file_name, logs_level = logging.INFO):
         encoding='utf-8'
     )
 
+# --------------------------
+# Report Generation Function
+# --------------------------
+def generate_sales_report(sales_data, enriched_data, non_enriched_data, report_file_path):
+    # Inline function to format money values
+    def fmt_money_val(value):
+        return f"₹{value:,.2f}"
+    
+    # Inline function to calculate percentage
+    def percentage(value, total):
+        return "{:.2f}%".format((value / total) * 100) if total > 0 else "0.00%"
+
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    total_records = len(sales_data)
+
+    # Overall Sales Summary
+    revenues = []
+
+    for txn in sales_data:
+        revenues.append(float(txn.get('Quantity', 0)) * float(txn.get('Price', 0.0)))
+    total_revenue = sum(revenues)  
+    total_transactions = len(sales_data)
+
+    average_order_value = total_revenue / total_transactions if total_transactions > 0 else 0.0
+    dates = sorted(txn['Date'] for txn in sales_data)
+    date_range = f"{dates[0]} to {dates[-1]}" if dates else "N/A"
+
+
+    # REGION-WISE PERFORMANCE
+    region_sales = defaultdict(float)
+    region_counts = Counter()
+
+    for txn in sales_data:
+        region = txn.get('Region', 'Unknown')
+        region_sales[region] += float(txn.get('Quantity', 0)) * float(txn.get('Price', 0.0))
+        region_counts[region] += 1
+
+    region_total = sum(region_sales.values())
+    # Sort Region by sales descending
+    sorted_region_sales = sorted(region_sales.items(), key=lambda x: x[1], reverse=True)
+
+    # TOP 5 PRODUCTS
+    product_sales = defaultdict(dict)
+    for txn in sales_data:
+        product = txn.get('ProductName', 'Unknown')
+        if product not in product_sales:
+            product_sales[product] = {'quantity': 0, 'revenue': 0.0}
+
+        quantity = int(txn.get('Quantity', 0))
+        revenue = float(txn.get('Quantity', 0)) * float(txn.get('Price', 0.0))
+        
+        product_sales[product]['quantity'] += quantity
+        product_sales[product]['revenue'] += revenue
+
+    # Sort products by revenue descending
+    top_products = sorted(product_sales.items(), key=lambda x: x[1]['revenue'], reverse=True)[:5]
+
+
+    # TOP 5 CUSTOMERS
+    customer_sales = defaultdict(dict)
+    for txn in sales_data:
+        customer = txn.get('CustomerID', 'Unknown')
+        if customer not in customer_sales:
+            customer_sales[customer] = {'spent': 0.0, 'orders': 0}
+
+        quantity = int(txn.get('Quantity', 0))
+        revenue = float(txn.get('Quantity', 0)) * float(txn.get('Price', 0.0))       
+        
+        customer_sales[customer]['spent'] += revenue
+        customer_sales[customer]['orders'] += 1
+    # Sort customers by amount spent descending
+    top_customers = sorted(customer_sales.items(), key=lambda x: x[1]['spent'], reverse=True)[:5]
+
+    # DAILY SALES TREND
+
+    daily_sales = defaultdict(dict)
+    for txn in sales_data:
+        date = txn.get('Date', 'Unknown')
+        if date not in daily_sales:
+            daily_sales[date] = {'revenue': 0.0, 'transactions': 0, 'customers': set()}
+
+        revenue = float(txn.get('Quantity', 0)) * float(txn.get('Price', 0.0))       
+        
+        daily_sales[date]['revenue'] += revenue
+        daily_sales[date]['transactions'] += 1
+        daily_sales[date]['customers'].add(txn.get('CustomerID', 'Unknown'))
+
+    daily_sales_rows = list(daily_sales.items())
+    # Sort by Date
+    daily_sales_rows.sort(key=lambda x: x[0])
+
+    # PRODUCT PERFORMANCE ANALYSIS
+    # BEST SELLING DAY
+    best_selling_day = max(daily_sales.items(), key=lambda x: x[1]['revenue'])[0 ] if daily_sales else "N/A"
+    low_performing_products = [product for product, stats in product_sales.items() if stats['quantity']  == min(x['quantity'] for x in product_sales.values())]
+    average_txn_region = {region: region_sales[region] / region_counts[region] if region_counts[region] > 0 else 0.0 for region in region_sales}
+    
+    # API ENRICHMENT SUMMARY
+    enriched_sales_count = sum(1 for txn in enriched_data if txn.get('API_Match') == 'True')
+    success_rate = (enriched_sales_count / len(enriched_data)) * 100 if enriched_data else 0
+    not_enriched = [txn['ProductID'] for txn in non_enriched_data if txn.get('API_Match') != 'True']
+
+    # Write Report to File
+    with open(report_file_path, 'w', encoding='utf-8') as report_file:
+        report_file.write("="*60 + "\n")
+        report_file.write(f"                 SALES ANALYTICS REPORT\n")
+        report_file.write(f"                 Generated: {now}\n")
+        report_file.write(f"                 Records Processed: {total_records}\n")
+        report_file.write("="*60 + "\n\n")
+
+        # Overall Summary
+        report_file.write(f"OVERALL SUMMARY\n")
+        report_file.write("-"*60 + "\n")
+        report_file.write(f"Total Revenue:          {fmt_money_val(total_revenue)}\n")
+        report_file.write(f"Total Transactions:     {total_transactions}\n")
+        report_file.write(f"Average Order Value:    {fmt_money_val(average_order_value)}\n")
+        report_file.write(f"Date Range:             {date_range}\n")
+        report_file.write("-"*60 + "\n")
+
+        # Region-wise Performance
+        report_file.write(f"REGION-WISE PERFORMANCE\n")
+        report_file.write("-"*60 + "\n")
+        report_file.write(f"{'Region':<15}{'Sales':<20}{'% of Total':<15}{'Transactions':<15}\n")
+        for region, sales in sorted_region_sales:
+            report_file.write(f"{region:<15}{fmt_money_val(sales):<20}{percentage(sales, region_total):<15}{region_counts[region]:<15}\n")
+        report_file.write("-"*60 + "\n")
+
+        # Top 5 Products
+        report_file.write(f"TOP 5 PRODUCTS\n")
+        report_file.write("-"*60 + "\n")
+        report_file.write(f"{'Rank':<10}{'Product Name':<20}{'Qty Sold':<15}{'Revenue':<15}\n")
+        for idx, (pname, pdata) in enumerate(top_products, 1):
+            report_file.write(f"{idx:<10}{pname:<20}{pdata['quantity']:<15}{fmt_money_val(pdata['revenue']):<15}\n")
+        report_file.write("-"*60 + "\n")
+
+        # Top 5 Customers
+        report_file.write(f"TOP 5 CUSTOMERS\n")
+        report_file.write("-"*60 + "\n")
+        report_file.write(f"{'Rank':<10}{'Customer ID':<15}{'Total Spent':<15}{'Order Count':<15}\n")
+        for idx, (cid, cdata) in enumerate(top_customers, 1):
+            report_file.write(f"{idx:<10}{cid:<15}{fmt_money_val(cdata['spent']):<15}{cdata['orders']:<15}\n")
+        report_file.write("-"*60 + "\n")
+
+        # Daily Sales Trend
+        report_file.write(f"DAILY SALES TREND\n")
+        report_file.write("-"*60 + "\n")
+        report_file.write(f"{'Date':<15}{'Revenue':<20}{'Transactions':<15}{'Unique Customers':<15}\n")
+        for date_idx, val_idx in daily_sales_rows:
+            report_file.write(f"{date_idx:<15}{fmt_money_val(val_idx['revenue']):<20}{val_idx['transactions']:<15}{len(val_idx['customers']):<15}\n")
+        report_file.write("-"*60 + "\n")
+
+        # Product Performance Analysis
+        report_file.write(f"PRODUCT PERFORMANCE ANALYSIS\n")
+        report_file.write("-"*60 + "\n")
+        report_file.write(f"Best Selling Day:        {best_selling_day}\n")
+        report_file.write(f"Low Performing Products: {', '.join(low_performing_products) if low_performing_products else 'None'}\n\n")
+        report_file.write("Average Transaction Value per Region:\n")
+        for r_idx, val in average_txn_region.items():
+            report_file.write(f"  {r_idx:<7}:   {fmt_money_val(val)}\n")
+        report_file.write("-"*60 + "\n")
+
+        # API Enrichment Summary
+        report_file.write(f"API ENRICHMENT SUMMARY\n")
+        report_file.write("-"*60 + "\n")
+        report_file.write(f"Total Products Enriched: {enriched_sales_count}\n")
+        report_file.write(f"Success Rate: {success_rate:.2f}%\n")
+        report_file.write(f"Products Not Enriched: {', '.join(not_enriched) if not_enriched else 'None'}\n")
+        report_file.write("-"*60 + "\n")
 
 # ------------------
 # Main function
@@ -356,6 +524,24 @@ def main():
 
     logger.info("✓ Saved to: %s\n", short_path)
     print(f"✓ Saved to: {short_path}\n")
+
+    # Task 4: Generate Sales Report File
+
+    logger.info("[9/10] Generating report...\n")
+    print("[9/10] Generating report...\n")
+
+    generate_sales_report(parsed_sales_data, enriched_sales_data, non_enriched_sales_data, str(report_file_path))
+
+    short_path = os.path.join(os.path.basename(os.path.dirname(report_file_path)), os.path.basename(report_file_path))
+
+    logger.info(f"✓ Report saved to: {short_path}\n")
+    print(f"✓ Report saved to: {short_path}\n")
+
+    logger.info("[10/10] Process Complete!\n")
+    print("[10/10] Process Complete!\n")
+    
+    logger.info(f"="*60)
+    print(f"="*60)
 
 
 # Run main function

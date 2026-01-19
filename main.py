@@ -10,7 +10,15 @@ from collections import defaultdict, Counter
 # --------------------------
 # Find project root
 def find_project_root(preferred_dirs=None, max_up=2):
-    """Find the project root directory by looking for specific marker files or directories."""
+    """
+    Find the project root directory by looking for specific marker files or directories.
+    
+    parameters:
+     - param preferred_dirs: List of directory names to look for as markers.
+     - param max_up: Maximum number of parent directories to traverse up.
+
+    returns: Path object of the project root directory.
+    """
     preferred_dirs = preferred_dirs or ['data', 'utils', 'output', 'logs']
     current_dir = Path.cwd().resolve()
     for hop in range(max_up + 1):
@@ -23,13 +31,27 @@ def find_project_root(preferred_dirs=None, max_up=2):
 
 # Ensure directories exist
 def ensure_dirs(dirs):
-    """Ensure that the specified directories exist."""
+    """
+    Ensure that the specified directories exist.
+
+    parameters:
+     - param dirs: List of directory paths to ensure existence.
+
+    returns: None
+    """
     for directory in dirs:
         Path(directory).mkdir(parents=True, exist_ok=True)
 
 # Install required packages
 def install_package(package_file):
-    """Install a package using pip dynamically."""
+    """
+    Install a package using pip dynamically.
+
+    parameters:
+     - param package_file: Path to the requirements file.
+
+    returns: None
+    """
     if os.path.exists(package_file):
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', "-r", str(package_file)])
 
@@ -40,6 +62,15 @@ import logging
 
 # Setup logging
 def setup_logging(log_file_name, logs_level = logging.INFO):
+    """
+    Setup logging configuration.
+
+    parameters:
+     - param log_file_name: Name of the log file.
+     - param logs_level: Logging level (default: logging.INFO).
+
+    returns: None
+    """
     logging.basicConfig(    
         filename=str(log_file_name),
         level=logs_level,
@@ -52,6 +83,17 @@ def setup_logging(log_file_name, logs_level = logging.INFO):
 # Report Generation Function
 # --------------------------
 def generate_sales_report(sales_data, enriched_data, non_enriched_data, report_file_path):
+    """
+    Generate a comprehensive sales report.
+
+    parameters:
+     - param sales_data: List of all sales transactions.
+     - param enriched_data: List of enriched sales transactions.
+     - param non_enriched_data: List of non-enriched sales transactions.
+     - param report_file_path: Path to save the generated report.
+
+    returns: None
+    """
     # Inline function to format money values
     def fmt_money_val(value):
         return f"₹{value:,.2f}"
@@ -222,7 +264,9 @@ def generate_sales_report(sales_data, enriched_data, non_enriched_data, report_f
 # ------------------
 
 def main():          
-
+    """
+    Main function to run the sales analytics system.
+    """
     # Find project root
     project_root = find_project_root()
     input_data_dir = project_root / 'data'

@@ -16,8 +16,21 @@ class SalesDataFileHandler:
     # ---------------------------------
 
     # Read sales data from file
-    def read_sales_data(self, filename: str) -> Tuple[List[str], Optional[str]]:
+    def read_sales_data(self, filename):
+        """
+        Reads sales data from file handling encoding issues
         
+        parameters:
+        - filename: path to the sales data file
+        
+        Returns: A tuple containing:
+        - List of sales data lines without header
+        - Encoding used to read the file (or None if not determined)
+
+        Expected Output Format:
+        ['T001|2024-12-01|P101|Laptop|2|45000|C001|North', ...]
+
+        """
         sales_data_without_header: List[str] = []
 
         if not filename:
@@ -88,7 +101,32 @@ class SalesDataFileHandler:
 
     # Parse and clean sales transactions
     def parse_transactions(self, raw_lines: List[str]) -> List[Dict]:
+        """
+        Parses raw lines into clean list of dictionaries
         
+        parameters:
+        - raw_lines: list of raw transaction lines from sales data file
+        
+        Returns: list of dictionaries with keys:        
+        ['TransactionID', 'Date', 'ProductID', 'ProductName',
+        'Quantity', 'UnitPrice', 'CustomerID', 'Region']
+
+        Expected Output Format:
+        [
+            {
+                'TransactionID': 'T001',
+                'Date': '2024-12-01',
+                'ProductID': 'P101',
+                'ProductName': 'Laptop',
+                'Quantity': 2,           # int type
+                'UnitPrice': 45000.0,    # float type
+                'CustomerID': 'C001',
+                'Region': 'North'
+            },
+            ...
+        ]
+
+        """
         parsed_transactions: List[Dict] = []
 
         required_num_fields = 8
@@ -238,7 +276,30 @@ class SalesDataFileHandler:
     
     # Validate and filter sales transactions based on user criteria
     def validate_and_filter(self, transactions: List[Dict], region: str = "", min_amount: str = "", max_amount: str = "") -> Tuple[List[Dict], int, Dict]:
+        """
+        Validates transactions and applies optional filters
 
+        Parameters:
+        - transactions: list of transaction dictionaries
+        - region: filter by specific region (optional)
+        - min_amount: minimum transaction amount (Quantity * UnitPrice) (optional)
+        - max_amount: maximum transaction amount (optional)
+
+        Returns: tuple (valid_transactions, invalid_count, filter_summary)
+
+        Expected Output Format:
+        (
+            [list of valid filtered transactions],
+            5,  # count of invalid transactions
+            {
+                'total_input': 100,
+                'invalid': 5,
+                'filtered_by_region': 20,
+                'filtered_by_amount': 10,
+                'final_count': 65
+            }
+        )
+        """
         required_fields = [
             'TransactionID', 
             'Date', 

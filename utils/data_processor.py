@@ -11,6 +11,18 @@ class DataProcessor:
     # Task 2.1: Sales Summary Calculator
     # a} Calculates total revenue from sales data
     def calculate_total_revenue(self, sales_data):
+        """
+        Calculates total revenue from all transactions
+
+        parameters:
+        sales_data: list of dictionaries (each dictionary represents a sales record with 'Quantity' and 'Price' keys)
+
+        Returns: float (total revenue)
+
+        Expected Output: Single number representing sum of (Quantity * UnitPrice)
+        Example: 1545000.50
+
+        """
         total_revenue = 0.0
         for record in sales_data:
             try:
@@ -22,6 +34,26 @@ class DataProcessor:
     
     # b} Analyzes sales data by region
     def region_wise_sales(self, sales_data):
+        """
+        Analyzes sales by region
+
+        parameters:
+        sales_data: list of dictionaries (each dictionary represents a sales record with 'Region', 'Quantity', and 'Price' keys)
+
+        Returns: dictionary with region statistics
+
+        Expected Output Format:
+        {
+            'North': {
+                'total_sales': 450000.0,
+                'transaction_count': 15,
+                'percentage': 29.13
+            },
+            'South': {...},
+            ...
+        }
+
+        """
         region_sales = {}
         total_revenue = self.calculate_total_revenue(sales_data)
 
@@ -49,6 +81,22 @@ class DataProcessor:
     
     # c} Identifies top N selling products based on quantity sold
     def top_selling_products(self, sales_data, n=5):
+        """
+        Finds top n products by total quantity sold
+
+        parameters:
+        sales_data: list of dictionaries (each dictionary represents a sales record with 'ProductName',
+        
+        Returns: list of tuples
+
+        Expected Output Format:
+        [
+            ('Laptop', 45, 2250000.0),  # (ProductName, TotalQuantity, TotalRevenue)
+            ('Mouse', 38, 19000.0),
+            ...
+        ]
+
+        """
         product_sales = {}
 
         for record in sales_data:
@@ -76,6 +124,24 @@ class DataProcessor:
     
     # d} Analyzes customer purchase behavior
     def customer_analysis(self, sales_data):
+        """
+        Analyzes customer purchase patterns
+
+        Returns: dictionary of customer statistics
+
+        Expected Output Format:
+        {
+            'C001': {
+                'total_spent': 95000.0,
+                'purchase_count': 3,
+                'avg_order_value': 31666.67,
+                'products_bought': ['Laptop', 'Mouse', 'Keyboard']
+            },
+            'C002': {...},
+            ...
+        }
+
+        """
         customer_stats = {}
 
         for record in sales_data:
@@ -109,6 +175,26 @@ class DataProcessor:
     # Task 2.2: Date-based Analysis
     # a) Daily Sales Trend
     def daily_sales_trend(self, sales_data):
+        """
+        Analyzes sales trends by date
+
+        parameters:
+        sales_data: list of dictionaries (each dictionary represents a sales record with 'Date', 'Quantity', 'Price', and 'CustomerID' keys)
+
+        Returns: dictionary sorted by date
+
+        Expected Output Format:
+        {
+            '2024-12-01': {
+                'revenue': 125000.0,
+                'transaction_count': 8,
+                'unique_customers': 6
+            },
+            '2024-12-02': {...},
+            ...
+        }
+
+        """
         daily_sales = {}
 
         for record in sales_data:
@@ -143,6 +229,18 @@ class DataProcessor:
     # b) Find Peak Sales Day
 
     def find_peak_sales_day(self, sales_data):
+        """
+        Identifies the date with highest revenue
+
+        parameters:
+        sales_data: list of dictionaries (each dictionary represents a sales record with 'Date', 'Quantity', and 'Price' keys)
+
+        Returns: tuple (date, revenue, transaction_count)
+
+        Expected Output Format:
+        ('2024-12-15', 185000.0, 12)
+
+        """
         daily_sales = {}
 
         for record in sales_data:
@@ -168,6 +266,19 @@ class DataProcessor:
     # a) Low Performing Products
 
     def low_performing_products(self, sales_data, threshold=10):
+        """
+        Identifies products with low sales
+
+        Returns: list of tuples
+
+        Expected Output Format:
+        [
+            ('Webcam', 4, 12000.0),  # (ProductName, TotalQuantity, TotalRevenue)
+            ('Headphones', 7, 10500.0),
+            ...
+        ]
+
+        """
         product_sales = {}
 
         for record in sales_data:

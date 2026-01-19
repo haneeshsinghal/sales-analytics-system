@@ -1,5 +1,5 @@
 # ---------------------------------
-# Data Processor Module
+# API Handler Module
 # ---------------------------------
 import logging
 import time
@@ -12,9 +12,28 @@ class ApiHandler:
     def __init__(self, logger: logging.Logger):
         self.logger = logger
 
-    # a) Fetch All Products
+    # a) Fetch All Products    
     def fetch_all_products(self, max_retries=3, delay=2) -> list:
-        # Fetch 109 products from the API with retry logic to show the real scenario for enrichment
+
+        """
+        Fetches all products from DummyJSON API (use limit=109 to show realistic scenario for enrichment).
+
+        Returns: list of product dictionaries
+
+        Expected Output Format:
+        [
+            {
+                'id': 1,
+                'title': 'iPhone 9',
+                'category': 'smartphones',
+                'brand': 'Apple',
+                'price': 549,
+                'rating': 4.69
+            },
+            ...
+        ]
+
+        """
         BASE_URL = "https://dummyjson.com/products?limit=109" 
         attempt = 0
 
@@ -58,7 +77,20 @@ class ApiHandler:
 
     # b) Create Product Mapping
     def create_product_mapping(self, products: list) -> dict:
-        # Create a mapping from product ID to product details
+        """
+        Creates a mapping of product IDs to product info
+
+        Parameters: api_products from fetch_all_products()
+
+        Returns: dictionary mapping product IDs to info
+
+        Expected Output Format:
+        {
+            1: {'title': 'iPhone 9', 'category': 'smartphones', 'brand': 'Apple', 'rating': 4.69},
+            2: {'title': 'iPhone X', 'category': 'smartphones', 'brand': 'Apple', 'rating': 4.44},
+            ...
+        }
+        """
         product_mapping = {}
         
         product_mapping = {
@@ -76,7 +108,34 @@ class ApiHandler:
     # ---------------------------------
 
     def enrich_sales_data(self, sales_data, product_mapping, enriched_data_path):
-        # Enrich sales data with product information from API
+        
+        """
+        Enriches transaction data with API product information
+
+        Parameters:
+        - transactions: list of transaction dictionaries
+        - product_mapping: dictionary from create_product_mapping()
+        - enriched_data_path: file path to save enriched data
+
+        Returns: list of enriched transaction dictionaries and enriched data path
+
+        Expected Output Format (each transaction):
+        {
+            'TransactionID': 'T001',
+            'Date': '2024-12-01',
+            'ProductID': 'P101',
+            'ProductName': 'Laptop',
+            'Quantity': 2,
+            'UnitPrice': 45000.0,
+            'CustomerID': 'C001',
+            'Region': 'North',
+            # NEW FIELDS ADDED FROM API:
+            'API_Category': 'laptops',
+            'API_Brand': 'Apple',
+            'API_Rating': 4.7,
+            'API_Match': True  # True if enrichment successful, False otherwise
+        }
+        """        
         enriched_data = []
         non_enriched_data = []
         enriched_product_id = {}
@@ -128,8 +187,20 @@ class ApiHandler:
     # Save Enriched Data helper function
 
     def save_enriched_data(self, enriched_data: list, enriched_data_filename_path: str):
-        
-        # Save enriched data to a file
+        """
+        Saves enriched transactions back to file
+        Parameters:
+        - enriched_data: list of enriched transaction dictionaries
+        - enriched_data_filename_path: file path to save enriched data
+
+        Returns: None
+
+        Expected File Format:
+        TransactionID|Date|ProductID|ProductName|Quantity|UnitPrice|CustomerID|Region|API_Category|API_Brand|API_Rating|API_Match
+        T001|2024-12-01|P101|Laptop|2|45000.0|C001|North|laptops|Apple|4.7|True
+        ...
+
+        """        
         if not enriched_data_filename_path:
             self.logger.warning("No filename provided to read sales data.")
             return [], None

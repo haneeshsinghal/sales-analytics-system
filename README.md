@@ -74,7 +74,7 @@ sales-analytics-system/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/sales-analytics-system.git
+   git clone https://github.com/haneeshsinghal/sales-analytics-system.git
    cd sales-analytics-system
    ```
 

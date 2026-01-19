@@ -163,3 +163,36 @@ class DataProcessor:
         peak_day, peak_data = max(daily_sales.items(), key=lambda item: item[1]['revenue']) if daily_sales else (None, None)        
         
         return (peak_day, round(peak_data['revenue'], 2), peak_data['transaction_count'])
+    
+    # Task 2.3: Product Performance
+    # a) Low Performing Products
+
+    def low_performing_products(self, sales_data, threshold=10):
+        product_sales = {}
+
+        for record in sales_data:
+            product = record['ProductName']
+            try:
+                quantity = int(record['Quantity'])
+                revenue = quantity * float(record['Price'])
+            except (ValueError, TypeError):
+                self.logger.error(f"Invalid amount value in record: {record}")
+                quantity = 0
+                revenue = 0.0
+
+            if product not in product_sales:
+                product_sales[product] = {'total_quantity': 0, 'total_revenue': 0.0}
+            
+            product_sales[product]['total_quantity'] += quantity
+            product_sales[product]['total_revenue'] += revenue
+
+        # Filter products below threshold
+        low_performers = [(product, stats['total_quantity'], round(stats['total_revenue'], 2)) 
+                          for product, stats in product_sales.items() if stats['total_quantity'] < threshold]
+
+        # Sort by quantity sold ascending
+        low_performing_products = sorted(low_performers, key=lambda x: x[1])
+
+        return low_performing_products
+    
+# ------- End of DataProcessor Class ------- #

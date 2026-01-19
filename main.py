@@ -219,8 +219,7 @@ def main():
     total_revenue = data_processor.calculate_total_revenue(parsed_sales_data)
 
     logger.info("Total Revenue: ₹%s\n", total_revenue)
-    print(f"\nTotal Revenue: ₹{total_revenue}")
-    
+    print(f"\nTotal Revenue: ₹{total_revenue}")    
     
     # 2. Region-wise Sales Analysis
 
@@ -285,6 +284,18 @@ def main():
     logger.info(f"-"*75)
     logger.info(" Task 2.3 : Product Performance...")
     logger.info(f"-"*75)
+
+    # 1. Low Performing Products
+    logger.info("Low Performing Products (Sold less than 10 units):\n")
+    print("Low Performing Products (Sold less than 10 units):\n")       
+    
+    low_performing_products = data_processor.low_performing_products(parsed_sales_data, threshold=10)
+
+    logger.info("Low Performing Products: %s\n", low_performing_products)
+    print("Low Performing Products: %s\n" % low_performing_products)    
+
+    logger.info(f"✓ Analysis complete\n")
+    print(f"✓ Analysis complete\n")
 
     
 

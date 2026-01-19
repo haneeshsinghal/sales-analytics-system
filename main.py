@@ -194,8 +194,48 @@ def main():
     logger.info("[4/10] Validating transactions...")
     logger.info(f"-"*75)
     print("[4/10] Validating transactions...")
+
     logger.info(f"✓ Valid: {len(filtered_transactions)} | Invalid: {invalid_count}\n")
     print(f"✓ Valid: {len(filtered_transactions)} | Invalid: {invalid_count}\n")
+
+    logger.info(f"-"*75)
+    logger.info("Part 2: Data Processing (Lists, Dictionaries & Functions)")
+    logger.info(f"-"*75) 
+
+    logger.info("[5/10] Analyzing sales data...\n")
+    logger.info(f"-"*75)
+    print("[5/10] Analyzing sales data...")    
+
+    from utils.data_processor import DataProcessor
+
+    data_processor = DataProcessor(logger = logger)
+
+    logger.info(" Task 2.1 : Sales Summary Calculator...")
+    logger.info(f"-"*75)
+
+    # 1. Total Revenue
+    logger.info("Calculating total revenue...")
+
+    total_revenue = data_processor.calculate_total_revenue(parsed_sales_data)
+
+    logger.info("Total Revenue: ₹%s\n", total_revenue)
+    print(f"\nTotal Revenue: ₹{total_revenue}")
+    
+    
+    # 2. Region-wise Sales Analysis
+
+    region_sales = data_processor.region_wise_sales(parsed_sales_data)
+
+    logger.info("Region-wise Sales Analysis: \n")
+    print("\nRegion-wise Sales Analysis:\n")
+
+    logger.info(f"Region-wise Sales: {region_sales}\n")
+    print(f"Region-wise Sales: {region_sales}")
+
+    for region, stats in region_sales.items():
+        logger.info("Region: %s: Total Sales = ₹%s, Transactions = %s, Percentage = %s %%", region, stats['total_sales'], stats['transaction_count'], stats['percentage']) 
+    logger.info("\n") 
+
 
     
 

@@ -297,6 +297,39 @@ def main():
     logger.info(f"✓ Analysis complete\n")
     print(f"✓ Analysis complete\n")
 
+    logger.info("[6/10] Fetching product data from API...\n")
+    print("[6/10] Fetching product data from API...\n")    
+
+    # Task 3.1: Fetch Product Details from API and Create Product Mapping
+    from utils.api_handler import ApiHandler
+
+    api_handler = ApiHandler(logger=logger)
+
+    # a) Fetch All Products
+    logger.info("Fetching products from API...")
+
+    all_products = api_handler.fetch_all_products()
+    
+    if not all_products:
+        print("No products fetched from API.\n")
+        logger.warning("No products fetched from API.\n")
+    else:        
+        logger.info("Products Dictionary fetched from API: %s\n", all_products)
+        logger.info(f"✓ Fetched {len(all_products)} products from API\n")
+        print(f"Products Dictionary fetched from API: {all_products}\n")
+    
+    # b) Create Product Mapping
+    logger.info("Creating product mapping from fetched products...")
+
+    product_mapping = api_handler.create_product_mapping(all_products)
+
+    logger.info("Product Mapping: %s\n", product_mapping)
+    logger.info(f"✓ Created {len(product_mapping)} product mapping from fetched products\n")
+    print ("Product Mapping created: %s\n" % product_mapping)
+
+    logger.info(f"✓ Fetched {len(all_products)} products from API and created product mapping\n")
+    print(f"✓ Fetched {len(all_products)} products\n")
+
     
 
 

@@ -113,7 +113,20 @@ def main():
     logger.info(f"✓ Successfully read {len(read_sales_data)} transactions\n")
     print(f"✓ Successfully read {len(read_sales_data)} transactions\n")
 
+    # Process sales data
+    logger.info(f"-"*75)
+    logger.info("[2/10] Parsing and cleaning data...")
+    logger.info(f"-"*75)
+    print("[2/10] Parsing and cleaning data...\n")
 
+    # Parse sales data using File Handler
+    parsed_sales_data = file_handler.parse_transactions(read_sales_data)
+    
+    logger.info("First 5 parsed transactions: %s", parsed_sales_data[:5])
+    logger.info(f"✓ Parsed {len(read_sales_data)} records\n")
+    print(f"\n✓ Parsed {len(read_sales_data)} records\n")
+
+    
 
 # Run main function
 if __name__ == "__main__":

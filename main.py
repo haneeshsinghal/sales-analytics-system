@@ -126,6 +126,77 @@ def main():
     logger.info(f"✓ Parsed {len(read_sales_data)} records\n")
     print(f"\n✓ Parsed {len(read_sales_data)} records\n")
 
+    # Data Validation and Filtering
+    logger.info(f"-"*75)
+    logger.info("[3/10] Filter Options Available:")
+    logger.info(f"-"*75)
+    print("[3/10] Filter Options Available:\n")
+
+    # Display available regions
+    regions = sorted(set(txn['Region'] for txn in parsed_sales_data))
+    
+    logger.info("Regions: %s", ", ".join(regions))
+    print("Regions: %s" % ", ".join(regions))
+
+    #Display Amount range
+    amounts = [txn['Quantity'] * txn['Price'] for txn in parsed_sales_data]
+
+    logger.info(f"Amount Range: ₹{min(amounts)} - ₹{max(amounts)}")
+    print(f"Amount Range: ₹{min(amounts)} - ₹{max(amounts)}\n")    
+
+    # Ask user if they want to apply filters
+    apply_filter = input("Do you want to apply filters? (y/n): ").strip().lower()
+    
+    region_input, min_amount_input, max_amount_input = None, None, None
+
+    if apply_filter == 'y':
+        # Get User input for filtering
+        region_input = input("Enter region to filter (or press Enter to skip): ").strip()
+        min_amount_input = input("Enter minimum amount (or press Enter to skip): ").strip()
+        max_amount_input = input("Enter maximum amount (or press Enter to skip): ").strip()
+
+        region = region_input.lower() if region_input.lower() in [r.lower() for r in regions] else None
+        min_amount = float(min_amount_input) if min_amount_input.replace('.', '', 1).isdigit() else None
+        max_amount = float(max_amount_input) if max_amount_input.replace('.', '', 1).isdigit() else None
+    else:
+        region, min_amount, max_amount = None, None, None
+
+    # Call the filter function
+    filtered_transactions, invalid_count, summary = file_handler.validate_and_filter(parsed_sales_data, region, min_amount, max_amount)
+
+    print("\nOutput:")
+    print("(")
+    print(f"    {filtered_transactions},")
+    print(f"    {invalid_count},  # count of invalid transactions")
+    print("    {")
+    print(f"        'total_input': {summary['total_input']},")
+    print(f"        'invalid': {summary['invalid']},")
+    print(f"        'filtered_by_region': {summary['filtered_by_region']},")
+    print(f"        'filtered_by_amount': {summary['filtered_by_amount']},")
+    print(f"        'final_count': {summary['final_count']}")
+    print("    }")
+    print(")\n")
+
+    logger.info("Output:")
+    logger.info("(")
+    logger.info(f"    {filtered_transactions},")
+    logger.info(f"    {invalid_count},  # count of invalid transactions")
+    logger.info("    {")
+    logger.info(f"        'total_input': {summary['total_input']},")
+    logger.info(f"        'invalid': {summary['invalid']},")
+    logger.info(f"        'filtered_by_region': {summary['filtered_by_region']},")
+    logger.info(f"        'filtered_by_amount': {summary['filtered_by_amount']},")
+    logger.info(f"        'final_count': {summary['final_count']}")
+    logger.info("    }")
+    logger.info(")\n")
+
+    logger.info(f"-"*75)
+    logger.info("[4/10] Validating transactions...")
+    logger.info(f"-"*75)
+    print("[4/10] Validating transactions...")
+    logger.info(f"✓ Valid: {len(filtered_transactions)} | Invalid: {invalid_count}\n")
+    print(f"✓ Valid: {len(filtered_transactions)} | Invalid: {invalid_count}\n")
+
     
 
 # Run main function

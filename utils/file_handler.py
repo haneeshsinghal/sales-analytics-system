@@ -231,3 +231,139 @@ class SalesDataFileHandler:
         return parsed_transactions
 
     # ---------------------------------
+
+    # --------------------------------------
+    # Validate and Filter Sales Transactions
+    # --------------------------------------
+    
+    # Validate and filter sales transactions based on user criteria
+    def validate_and_filter(self, transactions: List[Dict], region: str = "", min_amount: str = "", max_amount: str = "") -> Tuple[List[Dict], int, Dict]:
+
+        required_fields = [
+            'TransactionID', 
+            'Date', 
+            'ProductID', 
+            'ProductName',
+            'Quantity', 
+            'Price', 
+            'CustomerID', 
+            'Region'
+        ]
+
+        valid_transactions: List[Dict] = []
+        invalid_count = 0
+
+        try:
+            for txn in transactions:
+                try:
+                    # validate required fields
+                    if not all (field in txn for field in required_fields):
+                        self.logger.warning("Skipping transaction due to missing required fields: %s", txn)
+                        invalid_count += 1
+                        continue
+
+                    #validate Quantity and Price
+                    if not isinstance(txn['Quantity'], int) or txn['Quantity'] <= 0:
+                        self.logger.warning("Skipping transaction due to invalid Quantity: %s", txn)
+                        invalid_count += 1
+                        continue
+
+                    if not isinstance(txn['Price'], float) or txn['Price'] <= 0:
+                        self.logger.warning("Skipping transaction due to invalid Price: %s", txn)
+                        invalid_count += 1
+                        continue
+
+                    # Validate Ids
+                    if not txn['TransactionID'].startswith('T'):
+                        self.logger.warning("Skipping transaction due to invalid TransactionID: %s", txn)
+                        invalid_count += 1
+                        continue
+
+                    if not txn['CustomerID'].startswith('C'):
+                        self.logger.warning("Skipping transaction due to invalid CustomerID: %s", txn)
+                        invalid_count += 1
+                        continue
+
+                    if not txn['ProductID'].startswith('P'):
+                        self.logger.warning("Skipping transaction due to invalid ProductID: %s", txn)
+                        invalid_count += 1
+                        continue                    
+
+                    valid_transactions.append(txn)
+
+                
+
+                except Exception as e:
+                    self.logger.error("Skipping transaction due to unexpected error: %s | Transaction: %s", str(e), txn)
+                    invalid_count += 1                
+
+            # Summary before filtering
+            summary = {
+                'total_input': len(transactions),
+                'invalid': invalid_count,
+                'filtered_by_region': 0,
+                'filtered_by_amount': 0,
+                'final_count': 0
+            }
+
+            # If user chooses "n" for filters, skip filtering and return all valid transactions
+            if (region == "" or region is None) and min_amount is None and max_amount is None:
+                # No filters applied
+                summary['filtered_by_region'] = 0
+                summary['filtered_by_amount'] = 0
+                summary['final_count'] = len(valid_transactions)
+
+                self.logger.info("No filters applied. Showing all valid transactions.")
+                return (valid_transactions, invalid_count, summary)
+            else:
+                self.logger.info("Applying filters - Region: %s, Min Amount: %s, Max Amount: %s", region, min_amount, max_amount)            
+                # Apply Region filter
+                region_filtered = valid_transactions.copy()
+
+                if region:                
+                    region_filtered = [txn for txn in valid_transactions if txn['Region'].lower() == region.lower()]
+                    summary['filtered_by_region'] = len(region_filtered)
+                    self.logger.info("Applied region filter '%s'. Transactions reduced from %d to %d.", region, len(valid_transactions), len(region_filtered))
+                else:
+                    summary['filtered_by_region'] = len(region_filtered)
+                    self.logger.info("No region filter applied. Count: %d", len(region_filtered))
+
+                remaining_transactions_without_region = [txn for txn in valid_transactions if txn not in region_filtered]
+
+                # Amount filter
+                amount_filtered = []
+                for txn in remaining_transactions_without_region:  
+                    amount = txn['Quantity'] * txn['Price']
+
+                    #If both min_amount and max_amount are None → include all records
+                    if min_amount is None and max_amount is None:
+                        amount_filtered.append(txn)
+                    # If only min_amount is provided
+                    elif min_amount is not None and max_amount is None:
+                        if amount >= min_amount:
+                            amount_filtered.append(txn)
+                    # If only max_amount is provided
+                    elif min_amount is None and max_amount is not None:
+                        if amount <= max_amount:
+                            amount_filtered.append(txn)
+                    # If both are provided → apply AND logic
+                    else:
+                        if amount >= min_amount and amount <= max_amount:
+                            amount_filtered.append(txn)
+
+                summary['filtered_by_amount'] = len(amount_filtered)
+                
+                remaining_transactions = [txn for txn in remaining_transactions_without_region if txn not in amount_filtered]
+
+                summary['final_count'] = len(remaining_transactions)
+                self.logger.info("Filtering process completed successfully.")
+
+                # Return :
+                return (remaining_transactions, invalid_count, summary)
+
+        except Exception as e:
+            logger.error(f"Unexpected error in validate_and_filter: {e}")
+            return ([], invalid_count, {'error': str(e)})
+
+
+# End of Class         

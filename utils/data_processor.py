@@ -105,3 +105,61 @@ class DataProcessor:
         sorted_customer_stats = dict(sorted(customer_stats.items(), key=lambda item: item[1]['total_spent'], reverse=True))
                 
         return sorted_customer_stats
+    
+    # Task 2.2: Date-based Analysis
+    # a) Daily Sales Trend
+    def daily_sales_trend(self, sales_data):
+        daily_sales = {}
+
+        for record in sales_data:
+            date = record['Date']
+            customer_id = record['CustomerID']
+            try:
+                amount = int(record['Quantity']) * float(record['Price'])
+            except (ValueError, TypeError):
+                self.logger.error(f"Invalid amount value in record: {record}")
+                amount = 0.0
+
+            if date not in daily_sales:
+                daily_sales[date] = {
+                    'total_revenue': 0.0, 
+                    'transaction_count': 0,
+                    'unique_customers': set()
+                }
+            
+            daily_sales[date]['total_revenue'] += amount
+            daily_sales[date]['transaction_count'] += 1
+            daily_sales[date]['unique_customers'].add(customer_id)
+
+        # Convert customers set to count and sort by date
+        for date in daily_sales:
+            daily_sales[date]['unique_customers'] = len(daily_sales[date]['unique_customers'])
+
+        # Sort by date
+        sorted_daily_sales = dict(sorted(daily_sales.items(), key=lambda item: item[0]))
+
+        return sorted_daily_sales
+    
+    # b) Find Peak Sales Day
+
+    def find_peak_sales_day(self, sales_data):
+        daily_sales = {}
+
+        for record in sales_data:
+            date = record['Date']
+            try:
+                amount = int(record['Quantity']) * float(record['Price'])
+            except (ValueError, TypeError):
+                self.logger.error(f"Invalid amount value in record: {record}")
+                amount = 0.0
+
+            if date not in daily_sales:
+                daily_sales[date] = {'revenue': 0.0, 'transaction_count': 0}
+            
+            daily_sales[date]['revenue'] += amount
+            daily_sales[date]['transaction_count'] += 1
+
+        # Find the peak sales day
+        peak_day, peak_data = max(daily_sales.items(), key=lambda item: item[1]['revenue']) if daily_sales else (None, None)        
+        
+        return (peak_day, round(peak_data['revenue'], 2), peak_data['transaction_count'])

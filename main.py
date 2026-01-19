@@ -263,6 +263,31 @@ def main():
     logger.info(" Task 2.2 : Date-based Analysis...")
     logger.info(f"-"*75)
 
+    # 1. Daily Sales Trend
+    logger.info("Daily Sales Trend:\n")
+    print("Daily Sales Trend:\n")
+
+    daily_sales_trend = data_processor.daily_sales_trend(parsed_sales_data)
+    
+    logger.info("Daily Sales Trend: %s\n", daily_sales_trend)
+    print(f"Daily Sales Trend: {daily_sales_trend}\n")    
+    
+    # 2. Peak Sales Day
+    logger.info("Peak Sales Day:\n")
+    print("Peak Sales Day:\n")
+
+    peak_data = data_processor.find_peak_sales_day(parsed_sales_data)
+    
+    logger.info("Peak Sales Day: %s", peak_data)
+    logger.info("Peak Sales Day: %s with Revenue: ₹%s and transaction_count: %s", peak_data[0], peak_data[1],  peak_data[2])
+    print(f"Peak Sales Day: {peak_data}\n")
+    
+    logger.info(f"-"*75)
+    logger.info(" Task 2.3 : Product Performance...")
+    logger.info(f"-"*75)
+
+    
+
 
 # Run main function
 if __name__ == "__main__":
